@@ -1,11 +1,11 @@
-package com.ankit.socialmedia.service;
+package com.ankit.socialmedia.service.implementation;
 
 import com.ankit.socialmedia.Model.User;
 import com.ankit.socialmedia.configuration.JwtProvider;
+import com.ankit.socialmedia.exception.UserException;
 import com.ankit.socialmedia.repository.UserRepository;
+import com.ankit.socialmedia.service.UserService;
 import jakarta.annotation.Resource;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,15 +21,16 @@ public class UserServiceImp implements UserService {
     @Resource
     private PasswordEncoder passwordEncoder;
 
+    @Override
     public List<User> getAllUser() {
         return userRepository.findAll();
     }
 
     @Override
-    public User createUser(User newUser) throws Exception {
+    public User createUser(User newUser) throws UserException {
         User isExist = userRepository.findByEmail(newUser.getEmail());
-        if(isExist != null){
-            throw new Exception("User Already Exist" +isExist);
+        if (isExist != null) {
+            throw new UserException("User Already Exists: " + isExist);
         }
         User user = new User();
         user.setEmail(newUser.getEmail());
@@ -42,12 +43,12 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public User findUserById(Long userID) {
+    public User findUserById(Long userID) throws UserException {
         Optional<User> userFound = userRepository.findById(userID);
         if (userFound.isPresent()) {
             return userFound.get();
         }
-        throw new RuntimeException("User does not exist with ID: " + userID);
+        throw new UserException("User not found with ID: " + userID);
     }
 
     @Override
@@ -56,13 +57,17 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public User followUser(Long reqUserId, Long followUserId) {
+    public User followUser(Long reqUserId, Long followUserId) throws UserException {
+        if (reqUserId.equals(followUserId)) {
+            throw new UserException("User cannot follow themselves");
+        }
+
         User reqUser = findUserById(reqUserId);
         User followedUser = findUserById(followUserId);
-        // Ensure the user is not already following the followedUser
+
         if (!followedUser.getFollowers().contains(reqUser)) {
-            followedUser.getFollowers().add(reqUser); // Add follower to followedUser's followers
-            reqUser.getFollowings().add(followedUser); // Add followedUser to follower's followings
+            followedUser.getFollowers().add(reqUser);
+            reqUser.getFollowings().add(followedUser);
         }
         userRepository.save(reqUser);
         userRepository.save(followedUser);
@@ -71,30 +76,36 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public User updateUserById(User user, Long id) {
+    public User updateUserById(User user, Long id) throws UserException {
         Optional<User> userPresent = userRepository.findById(id);
         if (userPresent.isPresent()) {
             User userExist = userPresent.get();
             userExist.setEmail(user.getEmail());
             userExist.setFirstName(user.getFirstName());
             userExist.setLastName(user.getLastName());
-            userExist.setPassword(user.getPassword());
+            userExist.setPassword(passwordEncoder.encode(user.getPassword())); // Ensure password is encoded
             userExist.setGender(user.getGender());
             return userRepository.save(userExist);
         }
-        throw new RuntimeException("User not found with ID: " + id);
+        throw new UserException("User not found with ID: " + id);
     }
 
     @Override
     public List<User> searchUser(String query) {
-        return userRepository.searchUser(query);
+        return userRepository.searchUser(query); // Define search logic in the repository
     }
 
     @Override
-    public User findUserByToken(String jwt) {
-        String email  = JwtProvider.extractEmailByToken(jwt);
-
-        User user = userRepository.findByEmail(email);
-        return user;
+    public User findUserByToken(String jwt) throws UserException {
+        try {
+            String email = JwtProvider.extractEmailByToken(jwt);
+            User user = userRepository.findByEmail(email);
+            if (user == null) {
+                throw new UserException("User not found");
+            }
+            return user;
+        } catch (Exception e) {
+            throw new UserException("Invalid token or user not found");
+        }
     }
 }

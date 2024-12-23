@@ -1,4 +1,4 @@
-package com.ankit.socialmedia.service;
+package com.ankit.socialmedia.service.implementation;
 
 import com.ankit.socialmedia.Model.User;
 import com.ankit.socialmedia.exception.UserNotFoundException;

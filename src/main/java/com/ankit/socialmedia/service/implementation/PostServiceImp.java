@@ -1,15 +1,17 @@
-package com.ankit.socialmedia.service;
+package com.ankit.socialmedia.service.implementation;
 
 import com.ankit.socialmedia.Model.Post;
 import com.ankit.socialmedia.Model.User;
+import com.ankit.socialmedia.exception.PostException;
+import com.ankit.socialmedia.exception.UserException;
 import com.ankit.socialmedia.repository.PostRepository;
 import com.ankit.socialmedia.repository.UserRepository;
+import com.ankit.socialmedia.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +25,7 @@ public class PostServiceImp implements PostService {
     @Autowired
     private UserRepository userRepository;
     @Override
-    public Post createNewPost(Post post, Long userId) throws Exception {
+    public Post createNewPost(Post post, Long userId) throws PostException, UserException {
         User user = userService.findUserById(userId);
         Post newPost = new Post();
         newPost.setCaption(post.getCaption());
@@ -35,11 +37,11 @@ public class PostServiceImp implements PostService {
     }
 
     @Override
-    public String deletePost(Long postId, Long userId) throws Exception {
+    public String deletePost(Long postId, Long userId) throws PostException, UserException {
         Post post = findPostById(postId);
         User user = userService.findUserById(userId);
         if(post.getUser().getId() != user.getId()){
-            throw new Exception("You can't delete other User's post");
+            throw new PostException("You can't delete other User's post");
         }
         postRepository.deleteById(postId);
         return "Post deleted Successfully";
@@ -47,27 +49,25 @@ public class PostServiceImp implements PostService {
 
     @Override
     public List<Post> findPostByUserId(Long userId) {
-
         return postRepository.findPostByUserId(userId);
     }
 
     @Override
-    public Post findPostById(Long postId) throws Exception {
+    public Post findPostById(Long postId) throws PostException {
         Optional<Post> opt = postRepository.findById(postId);
         if (opt.isPresent()){
             return opt.get();
         }
-        throw new Exception("Post Not found with id"+ postId);
+        throw new PostException("Post Not found with id"+ postId);
     }
 
     @Override
     public List<Post> findAllPost() {
-
         return postRepository.findAll();
     }
 
     @Override
-    public Post postSaved(Long postId, Long userId) throws Exception {
+    public Post postSaved(Long postId, Long userId) throws PostException, UserException {
         Post post = findPostById(postId);
         User user = userService.findUserById(userId);
 
@@ -80,12 +80,12 @@ public class PostServiceImp implements PostService {
     }
     @Override
     @Transactional
-    public Post likedPost(Long postId, Long userId) throws Exception {
+    public Post likedPost(Long postId, Long userId) throws PostException, UserException {
         Post post = findPostById(postId);
         User user = userService.findUserById(userId);
 
         if (user == null) {
-            throw new Exception("User not found with id " + userId);
+            throw new PostException("User not found with id " + userId);
         }
 
         if (post.getLikes() == null) {

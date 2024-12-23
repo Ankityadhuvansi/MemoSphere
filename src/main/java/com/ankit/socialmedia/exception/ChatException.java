@@ -1,2 +1,7 @@
-package com.ankit.socialmedia.exception;public class ChatException {
+package com.ankit.socialmedia.exception;
+
+public class ChatException extends Exception{
+    public ChatException(String message){
+        super(message);
+    }
 }

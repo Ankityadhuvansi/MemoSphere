@@ -1,15 +1,17 @@
 package com.ankit.socialmedia.controller;
 
 import com.ankit.socialmedia.Model.User;
-import com.ankit.socialmedia.service.UserServiceImp;
+import com.ankit.socialmedia.exception.UserException;
+import com.ankit.socialmedia.service.implementation.UserServiceImp;
 import jakarta.annotation.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-public class HomeController {
+public class UserController {
 
     @Resource
     private UserServiceImp userServiceImp;
@@ -20,33 +22,30 @@ public class HomeController {
     }
 
     @GetMapping("/user/{id}")
-    public User getUserById(@PathVariable Long id) {
+    public User getUserById(@PathVariable Long id) throws UserException {
         return userServiceImp.findUserById(id);
     }
 
-    @PutMapping("/user-update/{id}")
-    public User updateUserById(@PathVariable Long id, @RequestBody User user) {
-        return userServiceImp.updateUser(user, id);
+    @PutMapping("/user-update")
+    public User updateUser(@RequestBody User user, @RequestHeader("Authorization") String jwt) throws UserException {
+        User reqUser = userServiceImp.findUserByToken(jwt);
+        user.setPassword(reqUser.getPassword());
+        return userServiceImp.updateUserById(user, reqUser.getId());
     }
 
-    @PutMapping("/users/follow/{userId1}/{userId2}")
-    public User followUserHandler(@PathVariable Long userId1, @PathVariable Long userId2) {
-        return userServiceImp.followUser(userId1, userId2);
+    @PutMapping("/user/follow/{userId2}")
+    public User followUserHandler(@RequestHeader("Authorization") String jwt, @PathVariable Long userId2) throws UserException {
+        User reqUser = userServiceImp.findUserByToken(jwt);
+        return userServiceImp.followUser(reqUser.getId(), userId2);
     }
 
     @GetMapping("/users/search")
     public List<User> searchUser(@RequestParam("query") String query) {
         return userServiceImp.searchUser(query);
     }
-
-    // Uncomment these methods if needed
-    // @PutMapping("/user-update")
-    // public void updateUser(@RequestBody User user) {
-    //     userServiceImp.save(user);
-    // }
-
-    // @DeleteMapping("/delete-user/{id}")
-    // public void deleteUser(@PathVariable Long id) {
-    //     userServiceImp.deleteUser(id);
-    // }
+    @GetMapping("/user/profile")
+    public ResponseEntity<User> getUserFromToken(@RequestHeader("Authorization") String jwt) throws UserException {
+        User user = userServiceImp.findUserByToken(jwt);
+        return ResponseEntity.ok(user);
+    }
 }

@@ -9,7 +9,7 @@ import org.springframework.web.context.request.WebRequest;
 import java.time.LocalDateTime;
 
 @ControllerAdvice
-public class GlobalExceptions {
+public class GlobalExceptionHandler {
     @ExceptionHandler(UserException.class)
     public ResponseEntity<ErrorDetails> UserException(Exception ue, WebRequest request){
         ErrorDetails error = new ErrorDetails(ue.getMessage(), request.getDescription(false), LocalDateTime.now());
@@ -18,6 +18,21 @@ public class GlobalExceptions {
 
     @ExceptionHandler(PostException.class)
     public ResponseEntity<ErrorDetails> PostException(Exception ue, WebRequest request){
+        ErrorDetails error = new ErrorDetails(ue.getMessage(), request.getDescription(false), LocalDateTime.now());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(CommentException.class)
+    public ResponseEntity<ErrorDetails> commentException(Exception ue, WebRequest request){
+        ErrorDetails error = new ErrorDetails(ue.getMessage(), request.getDescription(false), LocalDateTime.now());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(MessageException.class)
+    public ResponseEntity<ErrorDetails> messageException(Exception ue, WebRequest request){
+        ErrorDetails error = new ErrorDetails(ue.getMessage(), request.getDescription(false), LocalDateTime.now());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(ChatException.class)
+    public ResponseEntity<ErrorDetails> chatException(Exception ue, WebRequest request){
         ErrorDetails error = new ErrorDetails(ue.getMessage(), request.getDescription(false), LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }

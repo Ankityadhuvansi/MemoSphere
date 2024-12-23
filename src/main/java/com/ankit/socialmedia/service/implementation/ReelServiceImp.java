@@ -1,11 +1,9 @@
-package com.ankit.socialmedia.service;
+package com.ankit.socialmedia.service.implementation;
 
-import com.ankit.socialmedia.Model.Comment;
-import com.ankit.socialmedia.Model.Post;
 import com.ankit.socialmedia.Model.Reels;
 import com.ankit.socialmedia.Model.User;
 import com.ankit.socialmedia.repository.ReelRepository;
-import com.ankit.socialmedia.repository.UserRepository;
+import com.ankit.socialmedia.service.ReelService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 

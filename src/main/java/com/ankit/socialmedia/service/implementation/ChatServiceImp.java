@@ -1,8 +1,10 @@
-package com.ankit.socialmedia.service;
+package com.ankit.socialmedia.service.implementation;
 
 import com.ankit.socialmedia.Model.Chat;
 import com.ankit.socialmedia.Model.User;
+import com.ankit.socialmedia.exception.ChatException;
 import com.ankit.socialmedia.repository.ChatRepository;
+import com.ankit.socialmedia.service.ChatService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ChatServiceImp implements ChatService{
+public class ChatServiceImp implements ChatService {
     @Resource
     private ChatRepository chatRepository;
 
@@ -27,9 +29,9 @@ public class ChatServiceImp implements ChatService{
     }
 
     @Override
-    public Chat findChatById(Long chatId) throws Exception {
+    public Chat findChatById(Long chatId) throws ChatException {
         Optional<Chat> chat = chatRepository.findById(chatId);
-        if(chat.isEmpty()) throw new Exception("Chat Not found with User "+chatRepository.findById(chatId));
+        if(chat.isEmpty()) throw new ChatException("Chat Not found with User "+chatRepository.findById(chatId));
         return chat.get();
     }
 
